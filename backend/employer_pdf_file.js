@@ -8,10 +8,10 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Route to Fetch All PDF Data from db1
-router.get("/data", async (req, res) => {
+router.get("/allFiles", async (req, res) => {
   try {
     const result1 = await new Promise((resolve, reject) => {
-      db1.query("SELECT id, name FROM pdf_files", (err, results) => {
+      db1.query("SELECT employer_id, name FROM employer_pdfs", (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -30,7 +30,7 @@ router.get("/pdf/:id", async (req, res) => {
 
   try {
     const result = await new Promise((resolve, reject) => {
-      db1.query("SELECT name, file_data FROM pdf_files WHERE id = ?", [pdfId], (err, results) => {
+      db1.query("SELECT name, file_data FROM employer_pdfs WHERE id = ?", [pdfId], (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -51,7 +51,7 @@ router.get("/pdf/:id", async (req, res) => {
 });
 
 // Route to Upload Multiple PDFs
-router.post("/upload", upload.array("files"), async (req, res) => {
+router.post("/upload_file", upload.array("files"), async (req, res) => {
   console.log("Received Upload Request:", req.files);
 
   try {
@@ -65,7 +65,7 @@ router.post("/upload", upload.array("files"), async (req, res) => {
       return res.status(400).json({ error: "No valid PDF files found" });
     }
 
-    const sql = "INSERT INTO pdf_files (name, file_data) VALUES ?";
+    const sql = "INSERT INTO employer_pdfs (name, pdf_file) VALUES ?";
     const values = pdfFiles.map((file) => [file.originalname, file.buffer]);
 
     db1.query(sql, [values], (err, result) => {

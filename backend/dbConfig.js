@@ -1,13 +1,8 @@
 const mysql = require("mysql2");
 
-const db1 = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password:  "Hardik@9311",
-  database: "candidate",
-});
 
-const db2 = mysql.createConnection({
+
+const db1 = mysql.createConnection({
   host:  "localhost",
   user: "root",
   password:  "Hardik@9311",
@@ -15,7 +10,7 @@ const db2 = mysql.createConnection({
 });
 
 // Connect to Database 1
-db1,db2.connect((err) => {
+db1.connect((err) => {
   if (err) {
     console.error("Database 1 connection failed: ", err);
     return;
@@ -24,4 +19,4 @@ db1,db2.connect((err) => {
 });
 
 
-module.exports = { db1, db2 };
+module.exports = { db1 };

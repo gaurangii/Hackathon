@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'
 import Homepage from './components/Homepage'
-import Upload from "./components/upload";
+import Upload from "./components/Upload.jsx";
+import Job from "./components/jobs";
 
 function App() {
   
@@ -11,6 +12,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/upload" element={<Upload />} />
+        <Route path="/jobs" element={<Job />} />
       </Routes>
     </Router>
   );

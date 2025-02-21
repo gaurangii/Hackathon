@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Plus, Trash } from "lucide-react";
+import axios from "axios";
+import { Plus, Trash, Upload as UploadIcon } from "lucide-react";
 
 function Upload() {
   const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event) => {
     const newFiles = Array.from(event.target.files);
@@ -16,6 +18,34 @@ function Upload() {
   const removeFile = (index) => {
     const updatedFiles = files.filter((_, i) => i !== index);
     setFiles(updatedFiles);
+  };
+
+  const handleSubmit = async () => {
+    if (files.length === 0) {
+      alert("Please select at least one file to upload.");
+      return;
+    }
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
+
+    try {
+      setLoading(true);
+      const response = await axios.post("http://localhost:9090/pdf/upload_file", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert("Files uploaded successfully!");
+      console.log("Response:", response.data);
+      setFiles([]); // Clear uploaded files
+    } catch (error) {
+      alert("Error uploading files. Please try again.");
+      console.error("Upload error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,9 +68,7 @@ function Upload() {
             disabled={files.length >= 5}
           />
           <Plus size={40} className="text-yellow-400" />
-          <p className="mt-2 text-sm">
-            Click to upload (Max 5 files)
-          </p>
+          <p className="mt-2 text-sm">Click to upload (Max 5 files)</p>
         </label>
 
         {/* Uploaded Files List */}
@@ -62,6 +90,20 @@ function Upload() {
             ))}
           </div>
         )}
+
+        {/* Submit Button */}
+        <button
+          onClick={handleSubmit}
+          disabled={files.length === 0 || loading}
+          className="mt-4 w-full bg-yellow-400 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center hover:bg-yellow-500 transition disabled:opacity-50"
+        >
+          {loading ? "Uploading..." : (
+            <>
+              <UploadIcon size={20} className="mr-2" />
+              Submit
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

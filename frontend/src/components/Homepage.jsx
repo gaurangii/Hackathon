@@ -11,7 +11,7 @@ function Homepage() {
       <div className="relative w-screen h-screen ">
         {/* Background Image */}
         <img 
-  className="fixed inset-0 w-full h-full object-cover opacity-85 -z-10" 
+  className="fixed inset-0 w-full h-full object-cover -z-10" 
   src={bg} 
   alt="background" 
 />
@@ -61,9 +61,9 @@ function Homepage() {
     </a>
   </div>
 </div>
-
-    
-      </div>
+</div>
+      
+      
     </>
   );
 }
