@@ -18,7 +18,7 @@ function JobUpload() {
         setLoading(true);
 
         try {
-            const response = await axios.post("http://localhost:9090/addDescription", job, {
+            const response = await axios.post("http://localhost:9090/pdf/addDescription", job, {
                 headers: { "Content-Type": "application/json" },
             });
 

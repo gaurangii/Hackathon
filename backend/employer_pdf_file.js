@@ -80,4 +80,31 @@ router.post("/upload_file", upload.array("files", 5), async (req, res) => {
   }
 });
 
+// description of description 
+router.post("/addDescription", async (req, res) => {
+  const { description } = req.body;
+
+  if (!description) {
+    return res.status(400).json({ error: "Description is required" });
+  }
+
+  try {
+    const sql = "INSERT INTO description_table (description) VALUES (?)";
+    
+    db1.query(sql, [description], (err, result) => {
+      if (err) {
+        console.error("Error inserting description:", err);
+        return res.status(500).json({ error: "Database insertion failed" });
+      }
+
+      res.json({ message: "Description added successfully", id: result.insertId });
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 module.exports = router;

@@ -44,13 +44,12 @@ function Upload() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("📥 Received Response:", response.data);
-      if (response.data.rankings && response.data.rankings.length > 0) {
-        setRanking(response.data.rankings);
-        setFiles([]); // Clear uploaded files
-      } else {
-        setErrorMessage("⚠ No ranking data received!");
-      }
+      alert("Files uploaded successfully!");
+      console.log("Response:", response.data);
+      setFiles([]); // Clear uploaded files
+
+      // Redirect to /Jd after successful upload
+      window.location.href = "http://localhost:5174/Jd";
     } catch (error) {
       setErrorMessage("Error uploading files. Please try again.");
       console.error("❌ Upload error:", error);
@@ -112,8 +111,8 @@ function Upload() {
           </div>
         )}
 
-        {/* Submit Button */}
-        <button
+
+<a href="/Jd"
           onClick={handleSubmit}
           disabled={files.length === 0 || loading}
           className="mt-4 w-full bg-yellow-400 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center hover:bg-yellow-500 transition disabled:opacity-50"
@@ -124,7 +123,8 @@ function Upload() {
               Submit
             </>
           )}
-        </button>
+        </a>
+        
       </div>
 
       {/* Ranking Results */}
