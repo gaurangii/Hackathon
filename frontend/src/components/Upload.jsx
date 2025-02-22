@@ -43,13 +43,16 @@ function Upload() {
       alert("Files uploaded successfully!");
       console.log("Response:", response.data);
       setFiles([]); // Clear uploaded files
+
+      // Redirect to /Jd after successful upload
+      window.location.href = "http://localhost:5174/Jd";
     } catch (error) {
       alert("Error uploading files. Please try again.");
       console.error("Upload error:", error);
     } finally {
       setLoading(false);
     }
-};
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white relative">
@@ -118,7 +121,8 @@ function Upload() {
           </div>
         )}
 
-<button
+
+<a href="/Jd"
           onClick={handleSubmit}
           disabled={files.length === 0 || loading}
           className="mt-4 w-full bg-yellow-400 text-gray-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center hover:bg-yellow-500 transition disabled:opacity-50"
@@ -129,7 +133,8 @@ function Upload() {
               Submit
             </>
           )}
-        </button>
+        </a>
+        
       </div>
       <Footer />
     </div>
