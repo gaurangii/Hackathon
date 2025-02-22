@@ -2,7 +2,7 @@ import React from 'react';
 import bg from '../assets/bg.jpeg';
 import hiring from '../assets/hiring.png';
 import Navbar from './Navbar';
-import Upload from './upload';
+import Footer from './Footer';
 
 
 function Homepage() {
@@ -60,9 +60,10 @@ function Homepage() {
       Get Started 🚀
     </a>
   </div>
+  <div className='mt-12 w-screen h-full'>
+      <Footer />
+    </div>
 </div>
-
-    
       </div>
     </>
   );
