@@ -1,84 +1,82 @@
 const express = require("express");
-const { db1 } = require("./dbConfig");
 const multer = require("multer");
+const axios = require("axios");
+const path = require("path");
+const { db1 } = require("./dbConfig");
 
 const router = express.Router();
 
-// Multer Storage Configuration (Store in Memory)
-const upload = multer({ storage: multer.memoryStorage() });
-
-// Route to Fetch All PDF Data from db1
-router.get("/allFiles", async (req, res) => {
-  try {
-    const result1 = await new Promise((resolve, reject) => {
-      db1.query("SELECT employer_id, name FROM employer_pdfs", (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
-
-    res.json({ database1: result1 });
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    res.status(500).json({ error: "Failed to fetch data" });
-  }
+// Define the storage location
+const uploadDirectory = "C:/Users/prabh/OneDrive/Desktop/llm-app/examples/pipelines/demo-question-answering/data/";
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDirectory),
+  filename: (req, file, cb) => cb(null, file.originalname),
 });
+const upload = multer({ storage });
 
-// Route to Fetch a PDF as a File (Download/View)
-router.get("/pdf/:id", async (req, res) => {
-  const pdfId = req.params.id;
-
-  try {
-    const result = await new Promise((resolve, reject) => {
-      db1.query("SELECT name, file_data FROM employer_pdfs WHERE id = ?", [pdfId], (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
-      });
-    });
-
-    if (result.length === 0) {
-      return res.status(404).json({ error: "PDF not found" });
-    }
-
-    const pdfFile = result[0];
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="${pdfFile.name}"`);
-    res.send(pdfFile.file_data); 
-  } catch (error) {
-    console.error("Error retrieving PDF:", error);
-    res.status(500).json({ error: "Failed to retrieve PDF" });
+// 📌 Upload resumes and start ranking
+router.post("/upload_file", upload.array("files", 5), async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ message: "No files uploaded" });
   }
-});
-
-// Route to Upload Multiple PDFs
-router.post("/upload_file", upload.array("files"), async (req, res) => {
-  console.log("Received Upload Request:", req.files);
 
   try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: "No files uploaded" });
+    // Fetch all job roles from MySQL
+    const [jobs] = await db1.promise().query(
+      "SELECT job_title, job_description, work_location, salary, education, work_experience FROM jobs"
+    );
+
+    if (jobs.length === 0) {
+      return res.status(404).json({ message: "No job roles found" });
     }
 
-    const pdfFiles = req.files.filter(file => file.mimetype === "application/pdf");
+    console.log("📥 Fetched Job Roles:", jobs);
 
-    if (pdfFiles.length === 0) {
-      return res.status(400).json({ error: "No valid PDF files found" });
-    }
+    // Prepare data for AI API
+    const uploadedFiles = req.files.map((file) => ({
+      filename: file.originalname,
+      path: path.join(uploadDirectory, file.filename),
+    }));
 
-    const sql = "INSERT INTO employer_pdfs (name, pdf_file) VALUES ?";
-    const values = pdfFiles.map((file) => [file.originalname, file.buffer]);
+    // Loop through each job role and get AI ranking
+    let rankedResults = [];
+    for (let job of jobs) {
+      const requestData = {
+        prompt: {
+          job_title: job.job_title,
+          job_description: job.job_description,
+          work_location: job.work_location,
+          salary: job.salary,
+          education: job.education,
+          work_experience: job.work_experience,
+          uploaded_files: uploadedFiles,
+        },
+      };
 
-    db1.query(sql, [values], (err, result) => {
-      if (err) {
-        console.error("Error inserting files into database:", err);
-        return res.status(500).json({ error: "Database insertion failed" });
+      console.log(`📤 Sending Request for Job: ${job.job_title}`, requestData);
+
+      try {
+        const aiResponse = await axios.post("http://localhost:8000/v1/pw_ai_answer", requestData);
+        console.log(`📥 AI Response for ${job.job_title}:`, aiResponse.data);
+
+        rankedResults.push({
+          job_title: job.job_title,
+          ranking: aiResponse.data, // Store AI ranking response
+        });
+      } catch (error) {
+        console.error(`❌ AI API Error for ${job.job_title}:`, error);
+        rankedResults.push({
+          job_title: job.job_title,
+          ranking: [],
+          error: error.message,
+        });
       }
-      res.json({ message: "Files uploaded successfully", insertedRows: result.affectedRows });
-    });
+    }
 
+    res.json({ message: "Resumes uploaded and ranked", rankings: rankedResults });
   } catch (error) {
-    console.error("Upload Error:", error);
-    res.status(500).json({ error: "File upload failed" });
+    console.error("❌ Error fetching job roles:", error);
+    res.status(500).json({ message: "Error processing ranking", error: error.message });
   }
 });
 
